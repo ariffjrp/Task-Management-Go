@@ -8,4 +8,5 @@ import (
 
 func RegisterRoutes(router *gin.Engine, userController *controllers.UserController) {
 	router.POST("/v1/api/auth/register", userController.RegisterUserHandler)
+	router.POST("/v1/api/auth/verify-otp", userController.VerifyOTPHandler)
 }

@@ -1,39 +1,63 @@
 package main
 
 import (
+	"log"
+	"os"
 	"task_management/src/configs"
 	"task_management/src/controllers"
-	"task_management/src/repositorys"
+	"task_management/src/middleware"
+	repository "task_management/src/repositorys"
 	"task_management/src/routes"
 	"task_management/src/services"
 	"task_management/src/utils"
+
+	"github.com/joho/godotenv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// Initialize Gin router
-	router := gin.Default()
-
-	// Initialize DB connection
-	db, err := configs.ConnectDB()
+	err := godotenv.Load()
 	if err != nil {
-		panic("failed to connect to the database")
+		log.Println("Error loading .env Mail")
 	}
 
-	// Migrate the schema
+	// Load environment variables and configurations
+	db, err := configs.ConnectDB()
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
+	emailConfig := configs.LoadConfigEmail()
+
+	// Migrate database
 	utils.MigrateDB(db)
 
-	// Initialize repositories and services
-	userRepo := repositorys.NewUserRepository(db)
+	// Initialize session store with a secure secret key
+	middleware.InitSessionStore([]byte(os.Getenv("SECRET_SESSION")))
+
+	// Initialize services
+	totpService := services.NewTOTPService()
+	emailService := services.NewEmailService(emailConfig, totpService)
+	userRepo := repository.NewUserRepository(db)
 	userService := services.NewUserService(userRepo)
+	userController := controllers.NewUserController(userService, totpService, emailService)
 
-	// Initialize controllers
-	userController := controllers.NewUserController(userService)
+	// Set up Gin router
+	router := gin.Default()
 
-	// Register user routes
+	// Apply session middleware
+	router.Use(middleware.SessionMiddleware())
+
+	// Register routes
 	routes.RegisterRoutes(router, userController)
 
 	// Start the server
-	router.Run(":8080")
+	port := os.Getenv("PORT_SERVER")
+	if port == "" {
+		port = ":8080"
+	}
+	if err := router.Run(port); err != nil {
+		log.Fatalf("Failed to run server: %v", err)
+	}
 }

@@ -1,4 +1,4 @@
-package repositorys
+package repository
 
 import (
 	"context"
@@ -7,19 +7,19 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserRepositorys interface {
-	Register(ctx context.Context, user entity.User, account entity.Account) (entity.User, error)
+type UserRepository interface {
+	Register(ctx context.Context, user entity.User, account entity.Account) (entity.User, entity.Account, error)
 }
 
-type userRepositorys struct {
+type userRepository struct {
 	db *gorm.DB
 }
 
-func NewUserRepository(db *gorm.DB) *userRepositorys {
-	return &userRepositorys{db}
+func NewUserRepository(db *gorm.DB) UserRepository {
+	return &userRepository{db}
 }
 
-func (r *userRepositorys) Register(ctx context.Context, user entity.User, account entity.Account) (entity.User, error) {
+func (r *userRepository) Register(ctx context.Context, user entity.User, account entity.Account) (entity.User, entity.Account, error) {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&user).Error; err != nil {
 			return err
@@ -27,6 +27,7 @@ func (r *userRepositorys) Register(ctx context.Context, user entity.User, accoun
 
 		account.UserId = user.Id
 
+		// Create account
 		if err := tx.Create(&account).Error; err != nil {
 			return err
 		}
@@ -35,10 +36,12 @@ func (r *userRepositorys) Register(ctx context.Context, user entity.User, accoun
 	})
 
 	if err != nil {
-		return entity.User{}, err
+		return entity.User{}, entity.Account{}, err
 	}
 
-	r.db.Model(&user).Association("Account").Find(&user.Account)
+	if err := r.db.WithContext(ctx).Model(&user).Association("Account").Find(&user.Account); err != nil {
+		return entity.User{}, entity.Account{}, err
+	}
 
-	return user, nil
+	return user, account, nil
 }

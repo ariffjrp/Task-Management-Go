@@ -3,7 +3,7 @@ package services
 import (
 	"fmt"
 	"net/smtp"
-	"task_management/src/configs"
+	configs "task_management/src/configs"
 	"task_management/src/utils"
 )
 
@@ -12,7 +12,6 @@ type EmailService struct {
 	TOTPService *TOTPService
 }
 
-// Konstruktor untuk EmailService
 func NewEmailService(emailConfig configs.EmailConfig, totpService *TOTPService) *EmailService {
 	return &EmailService{
 		EmailConfig: emailConfig,
