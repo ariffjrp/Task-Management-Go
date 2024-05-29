@@ -54,9 +54,6 @@ func main() {
 
 	// Start the server
 	port := os.Getenv("PORT_SERVER")
-	if port == "" {
-		port = ":8080"
-	}
 	if err := router.Run(port); err != nil {
 		log.Fatalf("Failed to run server: %v", err)
 	}
