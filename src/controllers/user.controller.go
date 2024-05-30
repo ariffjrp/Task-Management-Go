@@ -37,6 +37,10 @@ type VerifyOTPRequest struct {
 	OTP   string `json:"otp"`
 }
 
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
 func (c *UserController) RegisterUserHandler(ctx *gin.Context) {
 	session := middleware.GetSession(ctx)
 	var req RegisterUserRequest
@@ -88,7 +92,9 @@ func (c *UserController) RegisterUserHandler(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "User registered successfully. Please verify your email."})
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "OTP has been sent to your email",
+	})
 }
 
 func (c *UserController) VerifyOTPHandler(ctx *gin.Context) {
@@ -128,13 +134,15 @@ func (c *UserController) VerifyOTPHandler(ctx *gin.Context) {
 		return
 	}
 
-	registeredUser, registeredAccount, err := c.userService.Register(ctx, user, account)
+	// Simpan data pengguna dan akun ke database
+	registeredUser, registeredAccount, accessToken, refreshToken, err := c.userService.Register(ctx, user, account)
 	if err != nil {
 		log.Printf("Failed to register user: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
 		return
 	}
 
+	// Hapus data dari sesi setelah penyimpanan berhasil
 	session.Values["user"] = nil
 	session.Values["account"] = nil
 	session.Values["secret"] = nil
@@ -144,5 +152,11 @@ func (c *UserController) VerifyOTPHandler(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "User verified and registered successfully", "user": registeredUser, "account": registeredAccount})
+	ctx.JSON(http.StatusOK, gin.H{
+		"message":      "User verified and registered successfully",
+		"user":         registeredUser,
+		"account":      registeredAccount,
+		"accessToken":  accessToken,
+		"refreshToken": refreshToken,
+	})
 }

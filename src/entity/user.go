@@ -8,14 +8,15 @@ import (
 )
 
 type User struct {
-	Id        uuid.UUID `gorm:"type:uuid;primaryKey;" json:"id"`
-	Email     string    `gorm:"not null" json:"email"`
-	Password  string    `gorm:"not null" json:"-"`
-	Provider  string    `gorm:"not null" json:"provider"`
-	CreatedAt time.Time `gorm:"not null" json:"createdAt"`
-	UpdatedAt time.Time `gorm:"not null" json:"updatedAt"`
-	DeletedAt time.Time `gorm:"index" json:"deletedAt,omitempty"`
-	Account   Account   `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"account"`
+	Id           uuid.UUID      `gorm:"type:uuid;primaryKey;" json:"id"`
+	Email        string         `gorm:"not null" json:"email"`
+	Password     string         `gorm:"not null" json:"-"`
+	Provider     string         `gorm:"not null" json:"provider"`
+	CreatedAt    time.Time      `gorm:"not null" json:"createdAt"`
+	UpdatedAt    time.Time      `gorm:"not null" json:"updatedAt"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
+	Account      Account        `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"account"`
+	RefreshToken RefreshToken   `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
 }
 
 type UserLogin struct {

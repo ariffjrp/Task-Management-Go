@@ -2,7 +2,6 @@ package configs
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/joho/godotenv"
 )
@@ -26,12 +25,4 @@ func LoadConfigEmail() EmailConfig {
 		SMPTUsername: getEnv("SMPT_USERNAME"),
 		SMPTPassword: getEnv("SMPT_PASSWORD"),
 	}
-}
-
-func getEnv(key string) string {
-	value, exists := os.LookupEnv(key)
-	if !exists {
-		return "Error get Key error"
-	}
-	return value
 }

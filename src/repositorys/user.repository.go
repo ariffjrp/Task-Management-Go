@@ -9,6 +9,9 @@ import (
 
 type UserRepository interface {
 	Register(ctx context.Context, user entity.User, account entity.Account) (entity.User, entity.Account, error)
+	SaveRefreshToken(ctx context.Context, refreshToken entity.RefreshToken) error
+	GetUserByRefreshToken(ctx context.Context, refreshToken string) (entity.User, error)
+	DeleteRefreshToken(ctx context.Context, refreshToken string) error
 }
 
 type userRepository struct {
@@ -44,4 +47,24 @@ func (r *userRepository) Register(ctx context.Context, user entity.User, account
 	}
 
 	return user, account, nil
+}
+
+func (r *userRepository) SaveRefreshToken(ctx context.Context, refreshToken entity.RefreshToken) error {
+	return r.db.WithContext(ctx).Create(&refreshToken).Error
+}
+
+func (r *userRepository) GetUserByRefreshToken(ctx context.Context, refreshToken string) (entity.User, error) {
+	var token entity.RefreshToken
+	err := r.db.WithContext(ctx).Where("token = ?", refreshToken).First(&token).Error
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	var user entity.User
+	err = r.db.WithContext(ctx).Where("id = ?", token.UserId).First(&user).Error
+	return user, err
+}
+
+func (r *userRepository) DeleteRefreshToken(ctx context.Context, refreshToken string) error {
+	return r.db.WithContext(ctx).Where("token = ?", refreshToken).Delete(&entity.RefreshToken{}).Error
 }

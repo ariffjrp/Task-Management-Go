@@ -36,11 +36,14 @@ func main() {
 	// Initialize session store with a secure secret key
 	middleware.InitSessionStore([]byte(os.Getenv("SECRET_SESSION")))
 
+	// Load JWT config
+	jwtConfig := configs.LoadConfigJWT()
+
 	// Initialize services
 	totpService := services.NewTOTPService()
 	emailService := services.NewEmailService(emailConfig, totpService)
 	userRepo := repository.NewUserRepository(db)
-	userService := services.NewUserService(userRepo)
+	userService := services.NewUserService(userRepo, jwtConfig)
 	userController := controllers.NewUserController(userService, totpService, emailService)
 
 	// Set up Gin router
