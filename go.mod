@@ -3,6 +3,7 @@ module task_management
 go 1.19
 
 require (
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/boombuler/barcode v1.0.1 // indirect
 	github.com/bytedance/sonic v1.11.7 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect

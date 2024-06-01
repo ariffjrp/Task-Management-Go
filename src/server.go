@@ -33,18 +33,30 @@ func main() {
 	// Migrate database
 	utils.MigrateDB(db)
 
+	// Add OAuth2Id column to users table if it doesn't exist
+	err = utils.AddOAuth2IdToUsers(db)
+	if err != nil {
+		log.Fatalf("Failed to add oauth2_id to users: %v", err)
+	}
+
 	// Initialize session store with a secure secret key
 	middleware.InitSessionStore([]byte(os.Getenv("SECRET_SESSION")))
 
 	// Load JWT config
 	jwtConfig := configs.LoadConfigJWT()
 
+	// Load  Google OAuth2 Config
+	configs.InitGoogleOAuth2Config()
+
 	// Initialize services
 	totpService := services.NewTOTPService()
 	emailService := services.NewEmailService(emailConfig, totpService)
 	userRepo := repository.NewUserRepository(db)
+	authRepo := repository.NewAuthRepository(db)
 	userService := services.NewUserService(userRepo, jwtConfig)
 	userController := controllers.NewUserController(userService, totpService, emailService)
+	authService := services.NewAuthService(authRepo, jwtConfig)
+	authController := controllers.NewAuthController(authService)
 
 	// Set up Gin router
 	router := gin.Default()
@@ -54,6 +66,7 @@ func main() {
 
 	// Register routes
 	routes.RegisterRoutes(router, userController)
+	routes.RegisterOAuth2Routes(router, authController)
 
 	// Start the server
 	port := os.Getenv("PORT_SERVER")

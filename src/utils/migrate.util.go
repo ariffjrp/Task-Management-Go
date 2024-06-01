@@ -13,3 +13,13 @@ func MigrateDB(db *gorm.DB) {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
 }
+
+func AddOAuth2IdToUsers(db *gorm.DB) error {
+	if !db.Migrator().HasColumn(&entity.User{}, "o_auth2_id") {
+		err := db.Migrator().AddColumn(&entity.User{}, "o_auth2_id")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

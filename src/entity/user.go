@@ -17,6 +17,7 @@ type User struct {
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
 	Account      Account        `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"account"`
 	RefreshToken RefreshToken   `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"-"`
+	OAuth2Id     string         `gorm:"column:o_auth2_id" json:"o_auth2_id,omitempty"`
 }
 
 type UserLogin struct {
