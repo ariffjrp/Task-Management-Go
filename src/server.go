@@ -5,17 +5,26 @@ import (
 	"os"
 	"task_management/src/configs"
 	"task_management/src/controllers"
+	_ "task_management/src/docs"
 	"task_management/src/middleware"
 	repository "task_management/src/repositorys"
 	"task_management/src/routes"
 	"task_management/src/services"
 	"task_management/src/utils"
 
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
 	"github.com/joho/godotenv"
 
 	"github.com/gin-gonic/gin"
 )
 
+// @title Task Management Service API
+// @version 1.0
+// @description A Tag Service API Task Management
+
+// @host	localhost:8080
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -60,6 +69,9 @@ func main() {
 
 	// Set up Gin router
 	router := gin.Default()
+
+	// swagger
+	router.GET("/v1/api/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Apply session middleware
 	router.Use(middleware.SessionMiddleware())

@@ -1,0 +1,133 @@
+definitions:
+  controllers.RegisterUserRequest:
+    properties:
+      email:
+        type: string
+      firstname:
+        type: string
+      lastname:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+    type: object
+  controllers.VerifyOTPRequest:
+    properties:
+      email:
+        type: string
+      otp:
+        type: string
+    type: object
+  entity.UserLogin:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: A Tag Service API Task Management
+  title: Task Management Service API
+  version: "1.0"
+paths:
+  /v1/api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login a user with email and password
+      parameters:
+      - description: Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UserLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Login a user
+      tags:
+      - User
+  /v1/api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email verification
+      parameters:
+      - description: Registration Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.RegisterUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Register a new user
+      tags:
+      - User
+  /v1/api/auth/verify-otp:
+    post:
+      consumes:
+      - application/json
+      description: Verify OTP for user registration
+      parameters:
+      - description: OTP Verification Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.VerifyOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "401":
+          description: Invalid OTP
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Verify OTP
+      tags:
+      - User
+swagger: "2.0"

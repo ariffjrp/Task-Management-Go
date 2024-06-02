@@ -42,6 +42,17 @@ type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
+// Create Tags	registers a new
+// @Summary 	Register a new user
+// @Description Register a new user with email verification
+// @Tags 		User
+// @Accept 		json
+// @Produce 	json
+// @Param 		request body RegisterUserRequest true "Registration Request"
+// @Success 	200 {string} string "success"
+// @Failure 	400 {object} string "Invalid request payload"
+// @Failure 	500 {object} string "Internal server error"
+// @Router 		/v1/api/auth/register [post]
 func (c *UserController) RegisterUserHandler(ctx *gin.Context) {
 	session := middleware.GetSession(ctx)
 	var req RegisterUserRequest
@@ -98,6 +109,18 @@ func (c *UserController) RegisterUserHandler(ctx *gin.Context) {
 	})
 }
 
+// Create Tags	Verifikasi
+// @Summary Verify OTP
+// @Description Verify OTP for user registration
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param request body VerifyOTPRequest true "OTP Verification Request"
+// @Success 200 {object} string "success"
+// @Failure 400 {object} string "Invalid request payload"
+// @Failure 401 {object} string "Invalid OTP"
+// @Failure 500 {object} string "Internal server error"
+// @Router /v1/api/auth/verify-otp [post]
 func (c *UserController) VerifyOTPHandler(ctx *gin.Context) {
 	session := middleware.GetSession(ctx)
 	var req VerifyOTPRequest
@@ -162,6 +185,17 @@ func (c *UserController) VerifyOTPHandler(ctx *gin.Context) {
 	})
 }
 
+// Create Tags	login
+// @Summary Login a user
+// @Description Login a user with email and password
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param request body entity.UserLogin true "Login Request"
+// @Success 200 {object} string "success"
+// @Failure 400 {object} string "Invalid request payload"
+// @Failure 401 {object} string "Unauthorized"
+// @Router /v1/api/auth/login [post]
 func (c *UserController) Login(ctx *gin.Context) {
 	var loginRequest entity.UserLogin
 	if err := ctx.ShouldBindJSON(&loginRequest); err != nil {
