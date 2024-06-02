@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"task_management/src/entity"
@@ -158,5 +159,24 @@ func (c *UserController) VerifyOTPHandler(ctx *gin.Context) {
 		"account":      registeredAccount,
 		"accessToken":  accessToken,
 		"refreshToken": refreshToken,
+	})
+}
+
+func (c *UserController) Login(ctx *gin.Context) {
+	var loginRequest entity.UserLogin
+	if err := ctx.ShouldBindJSON(&loginRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	accessToken, refreshToken, err := c.userService.Login(context.Background(), &loginRequest)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
 	})
 }

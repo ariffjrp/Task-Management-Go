@@ -15,6 +15,7 @@ import (
 
 type UserService interface {
 	Register(ctx context.Context, user *entity.User, account *entity.Account) (entity.User, entity.Account, string, string, error)
+	Login(ctx context.Context, loginRequest *entity.UserLogin) (string, string, error)
 	RefreshToken(ctx context.Context, refreshToken string) (string, string, error)
 }
 
@@ -75,6 +76,45 @@ func (s *userService) Register(ctx context.Context, user *entity.User, account *
 	}
 
 	return registeredUser, registeredAccount, accessToken, refreshToken, nil
+}
+
+func (s *userService) Login(ctx context.Context, loginRequest *entity.UserLogin) (string, string, error) {
+	dbUser, err := s.userRepository.Login(ctx, loginRequest.Email)
+	if err != nil {
+		return "", "", err
+	}
+
+	if dbUser.Email == "" {
+		return "", "", errors.New("user not found")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(loginRequest.Password))
+	if err != nil {
+		return "", "", errors.New("wrong email or password")
+	}
+
+	accessToken, err := utils.GenerateToken(&dbUser, s.jwtConfig)
+	if err != nil {
+		return "", "", err
+	}
+
+	refreshToken, err := utils.GenerateRefreshToken(&dbUser, s.jwtConfig)
+	if err != nil {
+		return "", "", err
+	}
+
+	refreshTokenEntity := entity.RefreshToken{
+		UserId:     dbUser.Id,
+		Token:      refreshToken,
+		ExpiryDate: time.Now().Add(s.jwtConfig.JWTRefreshExpiration),
+	}
+
+	err = s.userRepository.SaveRefreshToken(ctx, refreshTokenEntity)
+	if err != nil {
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, nil
 }
 
 func (s *userService) RefreshToken(ctx context.Context, refreshToken string) (string, string, error) {

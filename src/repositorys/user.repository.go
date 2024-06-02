@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"task_management/src/entity"
 
 	"gorm.io/gorm"
@@ -9,6 +10,7 @@ import (
 
 type UserRepository interface {
 	Register(ctx context.Context, user entity.User, account entity.Account) (entity.User, entity.Account, error)
+	Login(ctx context.Context, email string) (entity.User, error)
 	SaveRefreshToken(ctx context.Context, refreshToken entity.RefreshToken) error
 	GetUserByRefreshToken(ctx context.Context, refreshToken string) (entity.User, error)
 	DeleteRefreshToken(ctx context.Context, refreshToken string) error
@@ -47,6 +49,19 @@ func (r *userRepository) Register(ctx context.Context, user entity.User, account
 	}
 
 	return user, account, nil
+}
+
+func (r *userRepository) Login(ctx context.Context, email string) (entity.User, error) {
+	var user entity.User
+	err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return entity.User{}, nil
+		}
+		return entity.User{}, err
+	}
+
+	return user, nil
 }
 
 func (r *userRepository) SaveRefreshToken(ctx context.Context, refreshToken entity.RefreshToken) error {
